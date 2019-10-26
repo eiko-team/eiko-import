@@ -41,6 +41,8 @@ mongorestore --host 172.17.0.2 --port 27017
 }
 ```
 
+If you want to use another configuration file, run `CONFIG=<file> ./eiko-app` (Where <file> is your other configuration file name).
+
 ### run go binary
 ```bash
 make
