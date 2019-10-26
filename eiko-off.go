@@ -102,6 +102,8 @@ func loginDB() {
 func sendData(data bson.M) {
 	json, _ := json.Marshal(data)
 	Logger.Printf("%s\n\n\n", string(json))
+	// TODO: set token cookie
+	// r.Header.Set("Cookie", "token="+config.token)
 	http.Post(config.APIURL+"/api/consumable/add",
 		"application/json", strings.NewReader(string(json)))
 	time.Sleep(config.Timing * time.Millisecond)
@@ -130,7 +132,7 @@ func sendAllData() {
 
 func main() {
 	config = Init()
-	loginAPI()
+	// loginAPI()
 	loginDB()
 	sendAllData()
 }
