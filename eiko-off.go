@@ -130,7 +130,7 @@ func sendAllData() {
 
 func main() {
 	config = Init()
-	// loginAPI()
+	loginAPI()
 	loginDB()
 	sendAllData()
 }
