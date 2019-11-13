@@ -1,17 +1,17 @@
 package main
 
 import (
-	"log"
 	"os"
 
-	"github.com/eiko-team/eiko-off/api"
-	"github.com/eiko-team/eiko-off/config"
-	"github.com/eiko-team/eiko-off/openFoodFacts"
+	"github.com/eiko-team/eiko-import/api"
+	"github.com/eiko-team/eiko-import/config"
+	"github.com/eiko-team/eiko-import/openFoodFacts"
+	"github.com/eiko-team/eiko/misc/log"
 )
 
 var (
 	// Logger used to log output
-	Logger = log.New(os.Stdout, "eiko-OFF: ",
+	Logger = log.New(os.Stdout, "main",
 		log.Ldate|log.Ltime|log.Lshortfile)
 )
 

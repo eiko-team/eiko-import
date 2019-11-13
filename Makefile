@@ -1,4 +1,4 @@
-BIN = eiko-off
+BIN = eiko-import
 
 all: clean
 all: build

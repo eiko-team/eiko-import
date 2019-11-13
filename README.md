@@ -1,4 +1,4 @@
-# Eiko-Off(Open Food Fact)
+# Eiko-Import
 
 ## Run MongoDb instance
 ### MongoDb Server
@@ -28,6 +28,12 @@ mongorestore --host 172.17.0.2 --port 27017
 ```
 
 ## Run go bin
+### Clone repository
+```bash
+git clone ${URL} $GOPATH/src/github.com/eiko-team/eiko-import
+cd $GOPATH/src/github.com/eiko-team/eiko-import
+```
+
 ### fix configurations in `config.json`
 ```json
 {
