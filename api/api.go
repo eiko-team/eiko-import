@@ -3,21 +3,21 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/eiko-team/eiko-off/config"
+	"github.com/eiko-team/eiko-import/config"
+	"github.com/eiko-team/eiko/misc/log"
 )
 
 var (
 	// Logger used to log output
-	Logger = log.New(os.Stdout, "api: ",
+	Logger = log.New(os.Stdout, "api",
 		log.Ldate|log.Ltime|log.Lshortfile)
 )
 
-func Login(config config.Configuration) {
+func Login(config *config.Configuration) {
 	body := fmt.Sprintf(`{"user_email":"%s","user_password":"%s"}`,
 		config.GetAPIEmail(), config.GetAPIPass())
 	got, err := http.Post(config.GetAPIURL()+"/api/login",
@@ -33,4 +33,5 @@ func Login(config config.Configuration) {
 		Logger.Fatal(err)
 	}
 	config.SetToken(t.Token)
+	Logger.Printf(`connected","token":"%s`, t.Token)
 }

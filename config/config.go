@@ -3,17 +3,12 @@ package config
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-)
+	"github.com/eiko-team/eiko/misc/log"
 
-var (
-	// Logger used to log output
-	Logger = log.New(os.Stdout, "config: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Configuration struct {
@@ -32,8 +27,16 @@ type Configuration struct {
 	Collection *mongo.Collection
 }
 
-func Init() Configuration {
-	c := Configuration{}
+var (
+	// Logger used to log output
+	Logger = log.New(os.Stdout, "config",
+		log.Ldate|log.Ltime|log.Lshortfile)
+
+	config Configuration
+)
+
+func Init() *Configuration {
+	config := Configuration{}
 	configFile := os.Getenv("CONFIG")
 	if configFile == "" {
 		configFile = "config.json"
@@ -43,86 +46,90 @@ func Init() Configuration {
 	if err != nil {
 		Logger.Fatal(err)
 	}
-	err = json.NewDecoder(file).Decode(&c)
+	err = json.NewDecoder(file).Decode(&config)
 	if err != nil {
 		Logger.Fatal(err)
 	}
 
-	c.APIURL = c.APIHost
-	if c.APIPort != "" {
-		c.APIURL += ":" + c.APIPort
+	config.APIURL = config.APIHost
+	if config.APIPort != "" {
+		config.APIURL += ":" + config.APIPort
 	}
-	c.DBURL = "mongodb://" + c.DBHost
-	if c.DBPort != "" {
-		c.DBURL += ":" + c.DBPort
+	config.DBURL = "mongodb://" + config.DBHost
+	if config.DBPort != "" {
+		config.DBURL += ":" + config.DBPort
 	}
-	return c
+	return &config
 }
 
-func (config Configuration) GetAPIEmail() string {
+func (config *Configuration) Print() {
+	Logger.Printf("%+v", config)
+}
+
+func (config *Configuration) GetAPIEmail() string {
 	return config.APIEmail
 }
 
-func (config Configuration) GetAPIPass() string {
+func (config *Configuration) GetAPIPass() string {
 	return config.APIPass
 }
 
-func (config Configuration) GetAPIHost() string {
+func (config *Configuration) GetAPIHost() string {
 	return config.APIHost
 }
 
-func (config Configuration) GetAPIPort() string {
+func (config *Configuration) GetAPIPort() string {
 	return config.APIPort
 }
 
-func (config Configuration) GetDBHost() string {
+func (config *Configuration) GetDBHost() string {
 	return config.DBHost
 }
 
-func (config Configuration) GetDBPort() string {
+func (config *Configuration) GetDBPort() string {
 	return config.DBPort
 }
 
-func (config Configuration) GetTiming() time.Duration {
+func (config *Configuration) GetTiming() time.Duration {
 	return config.Timing
 }
 
-func (config Configuration) GetToken() string {
+func (config *Configuration) GetToken() string {
 	return config.Token
 }
 
-func (config Configuration) SetToken(token string) {
+func (config *Configuration) SetToken(token string) {
 	config.Token = token
 }
 
-func (config Configuration) GetAPIURL() string {
+func (config *Configuration) GetAPIURL() string {
 	return config.APIURL
 }
 
-func (config Configuration) GetDBURL() string {
+func (config *Configuration) GetDBURL() string {
 	return config.DBURL
 }
 
-func (config Configuration) GetCtx() context.Context {
+func (config *Configuration) GetCtx() context.Context {
 	return config.Ctx
 }
 
-func (config Configuration) SetCtx(ctx context.Context) {
+func (config *Configuration) SetCtx(ctx context.Context) {
 	config.Ctx = ctx
 }
 
-func (config Configuration) GetClient() *mongo.Client {
+func (config *Configuration) GetClient() *mongo.Client {
 	return config.Client
 }
 
-func (config Configuration) SetClient(client *mongo.Client) {
+func (config *Configuration) SetClient(client *mongo.Client) {
 	config.Client = client
 }
 
-func (config Configuration) GetCollection() *mongo.Collection {
+func (config *Configuration) GetCollection() *mongo.Collection {
 	return config.Collection
 }
 
-func (config Configuration) SetCollection(collection *mongo.Collection) {
+func (config *Configuration) SetCollection(collection *mongo.Collection) {
 	config.Collection = collection
 }

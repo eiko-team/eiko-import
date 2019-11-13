@@ -2,14 +2,14 @@ package openFoodFacts
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	conf "github.com/eiko-team/eiko-off/config"
-	"github.com/eiko-team/eiko-off/formating"
+	conf "github.com/eiko-team/eiko-import/config"
+	"github.com/eiko-team/eiko-import/formating"
+	"github.com/eiko-team/eiko/misc/log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,13 +19,13 @@ import (
 
 var (
 	// Logger used to log output
-	Logger = log.New(os.Stdout, "openFoodFacts: ",
+	Logger = log.New(os.Stdout, "openFoodFacts",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
-	config conf.Configuration
+	config *conf.Configuration
 )
 
-func Login(c conf.Configuration) {
+func Login(c *conf.Configuration) {
 	config = c
 	var err error
 	config.SetCtx(context.Background())
@@ -39,8 +39,11 @@ func Login(c conf.Configuration) {
 	if err != nil {
 		Logger.Fatal(err)
 	}
-	config.SetCollection(config.GetClient().Database("off").
+	config.SetCollection(config.
+		GetClient().
+		Database("off").
 		Collection("products"))
+	Logger.Println("connected")
 }
 
 func sendData(data bson.M, i int64) {
@@ -53,7 +56,7 @@ func sendData(data bson.M, i int64) {
 	time.Sleep(config.GetTiming() * time.Millisecond)
 }
 
-func Run() {
+func sendAllData() {
 	cur, err := config.Collection.Find(config.GetCtx(), bson.D{})
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +70,7 @@ func Run() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		sendData(result, nb)
+		go sendData(result, nb)
 		nb += 1
 		if nb > 500 {
 			break
@@ -77,4 +80,18 @@ func Run() {
 	if err := cur.Err(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func Run() {
+	sendAllData()
+	// TODO: fetch the 14 days update
+	// https://static.openfoodfacts.org/data/delta/index.txt
+	/*
+		go func() {
+			for { // infinite
+				time.Sleep(14 * 60 * time.Hour)
+				fetchUpdate()
+			}
+		}()
+	*/
 }
