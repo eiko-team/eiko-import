@@ -3,259 +3,263 @@ package formating
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/eiko-team/eiko/misc/structures"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func getFirstValue(data bson.M, keys []string) string {
-	for _, str := range keys {
-		if str == "" {
-			continue
-		}
-		if data[str] != nil {
-			return data[str].(string)
-		}
-	}
-	return ""
-}
-
-func getAllValues(data bson.M, keys []string) []string {
+func split(s string, sep rune) []string {
 	var res []string
-	for _, str := range keys {
-		if str == "" {
+	var buff string
+	var pos int
+	var parenthese int
+	for _, c := range s {
+		if c == ' ' && pos == 0 {
 			continue
 		}
-		if data[str] != nil {
-			if reflect.ValueOf(data[str]).Kind() == reflect.Slice {
-				for _, d := range data[str].(primitive.A) {
-					res = append(res, string(d.(string)))
-				}
-			}
+		if c == '(' {
+			parenthese++
 		}
-		if len(res) > 0 {
-			// Got a match
-			return res
+		if c == ')' {
+			parenthese--
+		}
+		if c == sep && parenthese == 0 {
+			res = append(res, buff)
+			buff = ""
+			pos = 0
+		} else {
+			buff += string(c)
+			pos++
 		}
 	}
-	return res
+	return append(res, buff)
 }
 
-func getNestedValues(data bson.M, key string, keys []string,
-	selector string) string {
-	var res string
-	if key == "" || data[key] == nil {
+func betterList(list string) []string {
+	list = strings.Replace(list, ".", "", -1)
+	tmp := split(list, ',')
+	if len(tmp) == 0 {
+		return nil
+	}
+	return tmp
+}
+
+func namesToPos(names []string, colName string) int {
+	for pos, val := range names {
+		if val == colName {
+			return pos
+		}
+	}
+	return -1
+}
+
+func getElt(names []string, data []string, colName string) string {
+	pos := namesToPos(names, colName)
+	if pos == -1 {
 		return ""
 	}
+	return data[pos]
+}
 
-	d := data[key].(bson.M)
-	for _, str := range keys {
-		if str == "" {
+func getElts(names []string, data []string, colNames []string) []string {
+	res := make([]string, len(colNames))
+	for i, val := range colNames {
+		if val == "" {
 			continue
 		}
-		if d[str] != nil {
-			for k, val := range d[str].(bson.M) {
-				fmt.Println(k, val)
-			}
-			fmt.Println("\n", d[str].(bson.M),
-				"\n",
-				d[str].(bson.M)["sizes"],
-				d[str].(bson.M)[selector],
-				selector, "\n\n\n\n\n\n\n")
-			panic(d[str].(bson.M)[selector].(string))
-			return string(d[str].(bson.M)[selector].(string))
-		}
+		res[i] = `{"` + val + `":"` + getElt(names, data, val) + `"}`
 	}
 	return res
 }
 
-func getName(data bson.M) string {
-	return getFirstValue(data, []string{"product_name", "product_name_fr", "product_name_en", "product_name_ha"})
-}
+func getAdditive(names []string, data []string) []string { return []string{""} }
 
-func getCompagnyName(data bson.M) string {
-	return getFirstValue(data, []string{"brands"})
-}
-
-func getAdditive(data bson.M) []string {
-	return getAllValues(data, []string{"additives_n", "additives_tags", "additives_old_n", "additives_old_tags", "additives_original_tags", "additives_prev_original_tags", "additives_debug_tags"})
-}
-
-func getAllergen(data bson.M) []string {
-	return getAllValues(data, []string{"allergens", "allergens_from_ingredients", "allergens_from_user", "allergens_tags", "allergens_hierarchy"})
-}
-
-func getEnergie(data bson.M) float64 {
-	str := getFirstValue(data, []string{"nutriment.energy", "nutriment.energy_value", "nutriment.energy_serving"})
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getFat(data bson.M) float64 {
-	str := getFirstValue(data, []string{"nutriment_level.fat", "nutriment.fat", "nutriment.fat_value", "nutriment.fat_serving"})
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getFiber(data bson.M) float64 {
-	str := getFirstValue(data, []string{"nutriscore_points.fiber", "nutriscore_points.fiber_value"})
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getGlucides(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getLipides(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getProteins(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getSodium(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getSaturatedFat(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getSugarGlucides(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getEnergy(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getAlcool(data bson.M) float64 {
-	str := ""
-	res, _ := strconv.ParseFloat(str, 32)
-	return res
-}
-
-func getBack(data bson.M) string {
-	// return getFirstValue(data, []string{"images.ingredients_fr"})
-	// str := getNestedValues(data, "images", []string{"ingredients_fr"}, "full")
-	// if str != "" {
-	// 	panic(str)
-	// }
-	str := getFirstValue(data, []string{"image_url", "image_small_url"})
-	if str != "" {
-		panic(str)
+func getAlcool(names []string, data []string) float64 {
+	str := getElt(names, data, "alcohol_100g")
+	if str == "" {
+		return 0
 	}
-	return str
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
 }
 
-func getComposition(data bson.M) string {
-	return getFirstValue(data, []string{""})
+func getAllergen(names []string, data []string) []string { return []string{""} }
+
+func getBack(names []string, data []string) string {
+	return getElt(names, data, "image_small_url")
 }
 
-func getFront(data bson.M) string {
-	return getFirstValue(data, []string{""})
+func getCategories(names []string, data []string) []string { return []string{""} }
+
+func getCode(names []string, data []string) []string {
+	return []string{getElt(names, data, "code")}
 }
 
-func getManufacturing(data bson.M) string {
-	return getFirstValue(data, []string{""})
+func getCompany(names []string, data []string) string {
+	return getElt(names, data, "brands")
 }
 
-func getCode(data bson.M) []string {
-	return getAllValues(data, []string{""})
+func getEnergy(names []string, data []string) float64 {
+	str := getElt(names, data, "energy_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
 }
 
-func getCategories(data bson.M) []string {
-	return getAllValues(data, []string{""})
+func getFat(names []string, data []string) float64 {
+	str := getElt(names, data, "fat_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
 }
 
-func getTags(data bson.M) []string {
-	return getAllValues(data, []string{""})
+func getFiber(names []string, data []string) float64 {
+	str := getElt(names, data, "fiber_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
 }
 
-func getPackaging(data bson.M) []string {
-	return getAllValues(data, []string{""})
+func getFront(names []string, data []string) string {
+	return getElt(names, data, "image_url")
 }
 
-func getIngredient(data bson.M) []string {
-	return getAllValues(data, []string{""})
+func getGlucides(names []string, data []string) float64 {
+	str := getElt(names, data, "glucose_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
 }
 
-func getVitamins(data bson.M) []string {
-	return getAllValues(data, []string{""})
-}
-
-func getNutriScore(data bson.M) string {
-	return ""
-}
-
-func getGrammes(data bson.M) int {
-	str := ""
+func getGrammes(names []string, data []string) int {
+	str := getElt(names, data, "serving_size")
+	if str == "" {
+		return 0
+	}
 	res, _ := strconv.Atoi(str)
 	return res
 }
 
-func getMLitre(data bson.M) int {
-	str := ""
+func getIngredient(names []string, data []string) []string {
+	return betterList(getElt(names, data, "ingredients_text"))
+}
+
+func getLabel(names []string, data []string) []string {
+	return getElts(names, data, []string{"labels", "labels_tags"})
+}
+
+func getManufacturing(names []string, data []string) string {
+	return getElt(names, data, "manufacturing_places")
+}
+
+func getMLitre(names []string, data []string) int {
+	// TODO: find proper volume
+	str := getElt(names, data, "serving_size")
+	if str == "" {
+		return 0
+	}
 	res, _ := strconv.Atoi(str)
 	return res
 }
 
-func getLabel(data bson.M) []string {
-	return getAllValues(data, []string{""})
+func getName(names []string, data []string) string {
+	return getElt(names, data, "product_name")
 }
 
-func BsonToString(data bson.M) (string, error) {
+func getNutriScore(names []string, data []string) string {
+	return getElt(names, data, "nutrition_grade_fr")
+}
+
+func getPackaging(names []string, data []string) []string {
+	return getElts(names, data, []string{"packaging", "packaging_tags"})
+}
+
+func getProteins(names []string, data []string) float64 {
+	str := getElt(names, data, "proteins_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
+}
+
+func getSaturatedFat(names []string, data []string) float64 {
+	str := getElt(names, data, "saturated-fat_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
+}
+
+func getSodium(names []string, data []string) float64 {
+	str := getElt(names, data, "sodium_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
+}
+
+func getSugarGlucides(names []string, data []string) float64 {
+	str := getElt(names, data, "sugars_100g")
+	if str == "" {
+		return 0
+	}
+	res, _ := strconv.ParseFloat(str, 32)
+	return res
+}
+
+func getTags(names []string, data []string) []string {
+	return getElts(names, data, []string{"categories", "categories_tags"})
+}
+
+func getVitamins(names []string, data []string) []string {
+	return getElts(names, data, []string{"vitamin-a_100g", "vitamin-d_100g", "vitamin-e_100g", "vitamin-k_100g", "vitamin-c_100g", "vitamin-b1_100g", "vitamin-b2_100g", "vitamin-pp_100g", "vitamin-b6_100g", "vitamin-b9_100g", "vitamin-b12_100g"})
+}
+
+func ProductToString(names []string, data []string) (string, error) {
 	struc := structures.Consumable{
-		Additive:      getAdditive(data),
-		Alcool:        getAlcool(data),
-		Allergen:      getAllergen(data),
-		Back:          getBack(data),
-		Categories:    getCategories(data),
-		Code:          getCode(data),
-		Company:       getCompagnyName(data),
-		Energie:       getEnergie(data),
-		Energy:        getEnergy(data),
-		Fat:           getFat(data),
-		Fiber:         getFiber(data),
-		Front:         getFront(data),
-		Glucides:      getGlucides(data),
-		Grammes:       getGrammes(data),
-		Ingredient:    getIngredient(data),
-		Label:         getLabel(data),
-		Lipides:       getLipides(data),
-		Manufacturing: getManufacturing(data),
-		MLitre:        getMLitre(data),
-		Name:          getName(data),
-		NutriScore:    getNutriScore(data),
-		Packaging:     getPackaging(data),
-		Proteins:      getProteins(data),
-		SaturatedFat:  getSaturatedFat(data),
-		Sodium:        getSodium(data),
-		SugarGlucides: getSugarGlucides(data),
-		Tags:          getTags(data),
-		Vitamins:      getVitamins(data),
+		Additive:      getAdditive(names, data),
+		Alcool:        getAlcool(names, data),
+		Allergen:      getAllergen(names, data),
+		Back:          getBack(names, data),
+		Categories:    getCategories(names, data),
+		Code:          getCode(names, data),
+		Company:       getCompany(names, data),
+		Energy:        getEnergy(names, data),
+		Fat:           getFat(names, data),
+		Fiber:         getFiber(names, data),
+		Front:         getFront(names, data),
+		Glucides:      getGlucides(names, data),
+		Grammes:       getGrammes(names, data),
+		Ingredient:    getIngredient(names, data),
+		Label:         getLabel(names, data),
+		Manufacturing: getManufacturing(names, data),
+		MLitre:        getMLitre(names, data),
+		Name:          getName(names, data),
+		NutriScore:    getNutriScore(names, data),
+		Packaging:     getPackaging(names, data),
+		Proteins:      getProteins(names, data),
+		SaturatedFat:  getSaturatedFat(names, data),
+		Sodium:        getSodium(names, data),
+		SugarGlucides: getSugarGlucides(names, data),
+		Tags:          getTags(names, data),
+		Vitamins:      getVitamins(names, data),
 	}
 	r, err := json.Marshal(struc)
+	if struc.Ingredient[0] != `{"labels":""}` {
+		fmt.Println(string(r))
+	}
 	res := string(r)
 	return res, err
 }

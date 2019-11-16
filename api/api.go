@@ -19,8 +19,8 @@ var (
 
 func Login(config *config.Configuration) {
 	body := fmt.Sprintf(`{"user_email":"%s","user_password":"%s"}`,
-		config.GetAPIEmail(), config.GetAPIPass())
-	got, err := http.Post(config.GetAPIURL()+"/api/login",
+		config.APIEmail, config.APIPass)
+	got, err := http.Post(config.APIURL+"/api/login",
 		"application/json", strings.NewReader(body))
 	if err != nil {
 		Logger.Fatal(err)

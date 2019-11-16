@@ -1,7 +1,8 @@
 package openFoodFacts
 
 import (
-	"context"
+	"encoding/csv"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -10,11 +11,6 @@ import (
 	conf "github.com/eiko-team/eiko-import/config"
 	"github.com/eiko-team/eiko-import/formating"
 	"github.com/eiko-team/eiko/misc/log"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var (
@@ -25,73 +21,49 @@ var (
 	config *conf.Configuration
 )
 
-func Login(c *conf.Configuration) {
-	config = c
-	var err error
-	config.SetCtx(context.Background())
-	client, err := mongo.Connect(config.GetCtx(),
-		options.Client().ApplyURI(config.GetDBURL()))
-	if err != nil {
-		Logger.Fatal(err)
-	}
-	config.SetClient(client)
-	err = config.GetClient().Ping(config.GetCtx(), readpref.Primary())
-	if err != nil {
-		Logger.Fatal(err)
-	}
-	config.SetCollection(config.
-		GetClient().
-		Database("off").
-		Collection("products"))
-	Logger.Println("connected")
+type FieldsReader struct {
+	*csv.Reader
 }
 
-func sendData(data bson.M, i int64) {
-	str, _ := formating.BsonToString(data)
-	Logger.Println(str)
+func sendData(names []string, data []string, i int64) {
+	str, _ := formating.ProductToString(names, data)
+	// Logger.Printf("%q -> %q -> %s", names, data, str)
 	// TODO: set token cookie
 	// r.Header.Set("Cookie", "token="+config.token)
-	http.Post(config.GetAPIURL()+"/api/consumable/add",
+	http.Post(config.APIURL+"/api/consumable/add",
 		"application/json", strings.NewReader(str))
-	time.Sleep(config.GetTiming() * time.Millisecond)
+	time.Sleep(config.Timing * time.Millisecond)
 }
 
 func sendAllData() {
-	cur, err := config.Collection.Find(config.GetCtx(), bson.D{})
+	file, err := os.Open(config.OffFile)
 	if err != nil {
-		log.Fatal(err)
+		Logger.Fatal(err)
 	}
-	defer cur.Close(config.GetCtx())
+	defer file.Close()
 
-	var nb int64
-	for cur.Next(config.GetCtx()) {
-		var result bson.M
-		err := cur.Decode(&result)
-		if err != nil {
-			log.Fatal(err)
-		}
-		go sendData(result, nb)
-		nb += 1
-		if nb > 500 {
+	r := csv.NewReader(file)
+	r.Comma = '\t'
+
+	names, err := r.Read()
+	if err != nil {
+		Logger.Fatal(err)
+	}
+	var i int64
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
 			break
 		}
-	}
-
-	if err := cur.Err(); err != nil {
-		log.Fatal(err)
+		if err != nil {
+			Logger.Fatal(err)
+		}
+		sendData(names, rec, i)
+		i++
 	}
 }
 
-func Run() {
+func Run(c *conf.Configuration) {
+	config = c
 	sendAllData()
-	// TODO: fetch the 14 days update
-	// https://static.openfoodfacts.org/data/delta/index.txt
-	/*
-		go func() {
-			for { // infinite
-				time.Sleep(14 * 60 * time.Hour)
-				fetchUpdate()
-			}
-		}()
-	*/
 }
