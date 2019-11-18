@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"reflect"
 
 	"github.com/eiko-team/eiko/misc/structures"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func split(s string, sep rune) []string {
@@ -110,10 +114,29 @@ func getAlcool(names []string, data []string) float64 {
 	return res
 }
 
-func getAllergen(names []string, data []string) []string {
-    // TODO Import allergents from MongoDb database
-    // BODY it might be usefull to import data from both database and csv file
-	return betterList(getElt(names, data, ""))
+func getValesFromBson(data bson.M, keys []string) []string {
+    var res []string
+    for _, str := range keys {
+        if str != "" {
+            continue
+        }
+        if data[str] != nil {
+            if reflect.ValueOf(data[str]).Kind() == reflect.Slice {
+                for _, d := range data[str].(primitive.A) {
+                    res = append(res, string(d.(string)))
+                }
+            }
+        }
+        if len(res) > 0 {
+            break
+        }
+    }
+    return res
+}
+
+func getAllergen(data bson.M) []string {
+    // TODO: Add more values
+	return getValesFromBson(data, []string{"allergens"})
 }
 
 func getBack(names []string, data []string) string {
@@ -259,11 +282,11 @@ func getVitamins(names []string, data []string) []string {
 	return getElts(names, data, []string{"vitamin-a_100g", "vitamin-d_100g", "vitamin-e_100g", "vitamin-k_100g", "vitamin-c_100g", "vitamin-b1_100g", "vitamin-b2_100g", "vitamin-pp_100g", "vitamin-b6_100g", "vitamin-b9_100g", "vitamin-b12_100g"})
 }
 
-func ProductToString(names []string, data []string) (string, error) {
+func ProductToString(names []string, data []string, bsonData bson.M) (string, error) {
 	struc := structures.Consumable{
 		Additive:      getAdditive(names, data),
 		Alcool:        getAlcool(names, data),
-		Allergen:      getAllergen(names, data),
+		Allergen:      getAllergen(bsonData),
 		Back:          getBack(names, data),
 		Categories:    getCategories(names, data),
 		Code:          getCode(names, data),
