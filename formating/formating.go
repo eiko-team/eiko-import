@@ -2,7 +2,6 @@ package formating
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -39,10 +38,30 @@ func split(s string, sep rune) []string {
 func betterList(list string) []string {
 	list = strings.Replace(list, ".", "", -1)
 	tmp := split(list, ',')
-	if len(tmp) == 0 {
-		return nil
-	}
 	return tmp
+}
+
+func additiveList(list string) []string {
+    // FORMAT: '([ elt -> lang:elt ] )+'
+    // RETURN [elt, lang:elt, ...]
+    list = strings.Replace(list, " ", "", -1)
+    list = strings.Replace(list, "[", "", -1)
+    list = strings.Replace(list, "]", ",", -1)
+    l := split(list, ',')
+    if len(l) == 0 {
+        return nil
+    }
+    res := []string{}
+    for _, val := range l {
+        elts := strings.Split(val, "->")
+        if len(elts) != 2 {
+            // res = append(res, val)
+            continue
+        } else {
+            res = append(res, elts...)
+        }
+    }
+    return res
 }
 
 func namesToPos(names []string, colName string) int {
@@ -73,7 +92,14 @@ func getElts(names []string, data []string, colNames []string) []string {
 	return res
 }
 
-func getAdditive(names []string, data []string) []string { return []string{""} }
+func getAdditive(names []string, data []string) []string {
+    res := additiveList(getElt(names, data, "additives"))
+    if tag := getElt(names, data, "additives_tags"); len(tag) != 0 {
+        tags := betterList(tag)
+        res = append(res, tags...)
+    }
+    return res
+}
 
 func getAlcool(names []string, data []string) float64 {
 	str := getElt(names, data, "alcohol_100g")
@@ -84,13 +110,19 @@ func getAlcool(names []string, data []string) float64 {
 	return res
 }
 
-func getAllergen(names []string, data []string) []string { return []string{""} }
+func getAllergen(names []string, data []string) []string {
+    // TODO Import allergents from MongoDb database
+    // BODY it might be usefull to import data from both database and csv file
+	return betterList(getElt(names, data, ""))
+}
 
 func getBack(names []string, data []string) string {
 	return getElt(names, data, "image_small_url")
 }
 
-func getCategories(names []string, data []string) []string { return []string{""} }
+func getCategories(names []string, data []string) []string {
+	return betterList(getElt(names, data, "categories_fr"))
+}
 
 func getCode(names []string, data []string) []string {
 	return []string{getElt(names, data, "code")}
@@ -257,9 +289,6 @@ func ProductToString(names []string, data []string) (string, error) {
 		Vitamins:      getVitamins(names, data),
 	}
 	r, err := json.Marshal(struc)
-	if struc.Ingredient[0] != `{"labels":""}` {
-		fmt.Println(string(r))
-	}
 	res := string(r)
 	return res, err
 }
