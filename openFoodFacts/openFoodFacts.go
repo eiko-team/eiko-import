@@ -11,6 +11,8 @@ import (
 	conf "github.com/eiko-team/eiko-import/config"
 	"github.com/eiko-team/eiko-import/formating"
 	"github.com/eiko-team/eiko/misc/log"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -45,6 +47,10 @@ func sendAllData() {
 	r := csv.NewReader(file)
 	r.Comma = '\t'
 
+    // TODO: Find proper file length
+    count := 1047595
+    bar := pb.StartNew(count)
+
 	names, err := r.Read()
 	if err != nil {
 		Logger.Fatal(err)
@@ -60,7 +66,9 @@ func sendAllData() {
 		}
 		sendData(names, rec, i)
 		i++
+		bar.Increment()
 	}
+	bar.Finish()
 }
 
 func Run(c *conf.Configuration) {
