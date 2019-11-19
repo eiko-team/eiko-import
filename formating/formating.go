@@ -135,8 +135,7 @@ func getValesFromBson(data bson.M, keys []string) []string {
 }
 
 func getAllergen(data bson.M) []string {
-    // TODO: Add more values
-	return getValesFromBson(data, []string{"allergens"})
+	return getValesFromBson(data, []string{"allergens", "allergens_from_ingredients", "allergens_from_user", "allergens_tags", "allergens_hierachy"})
 }
 
 func getBack(names []string, data []string) string {
