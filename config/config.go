@@ -1,29 +1,29 @@
 package config
 
 import (
-    "context"
+	"context"
 	"encoding/json"
 	"os"
 	"time"
 
 	"github.com/eiko-team/eiko/misc/log"
 
-    "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Configuration struct {
-	APIEmail string        `json:"api_email"`
-	APIPass  string        `json:"api_pass"`
-	APIHost  string        `json:"api_host"`
-	APIPort  string        `json:"api_port"`
-    DBHost   string        `json:"db_host"`
-    DBPort   string        `json:"db_port"`
-	OffFile  string        `json:"off_filepath"`
+	APIEmail string		`json:"api_email"`
+	APIPass  string		`json:"api_pass"`
+	APIHost  string		`json:"api_host"`
+	APIPort  string		`json:"api_port"`
+	DBHost   string		`json:"db_host"`
+	DBPort   string		`json:"db_port"`
+	OffFile  string		`json:"off_filepath"`
 	Timing   time.Duration `json:"timing"`
-	Token    string
+	Token	string
 	APIURL   string
-	DBURL    string
-	Ctx      context.Context
+	DBURL	string
+	Ctx	  context.Context
 	Client   *mongo.Client
 	Collection *mongo.Collection
 }
@@ -57,10 +57,15 @@ func Init() *Configuration {
 		config.APIURL += ":" + config.APIPort
 	}
 
-    config.DBURL = "mongodb://" + config.DBHost
-    if config.DBPort != "" {
-        config.DBURL += ":" + config.DBPort
-    }
+	if len(config.DBHost) < 10 || config.DBHost[:10] != "mongodb://" {
+	config.DBURL = "mongodb://"
+	}
+	config.DBURL += config.DBHost
+	if config.DBPort != "" {
+		config.DBURL += ":" + config.DBPort
+	}
+	Logger.Printf(`configuration","api_url":"%s","db_url":"%s","off_file":"%s`,
+		config.APIURL, config.DBURL, config.OffFile)
 	return &config
 }
 
@@ -73,14 +78,14 @@ func (config *Configuration) SetToken(token string) {
 }
 
 func (config *Configuration) SetCtx(ctx context.Context) {
-    config.Ctx = ctx
+	config.Ctx = ctx
 }
 
 func (config *Configuration) SetClient(client *mongo.Client) {
-    config.Client = client
+	config.Client = client
 }
 
 func (config *Configuration) SetCollection(collection *mongo.Collection) {
-    config.Collection = collection
+	config.Collection = collection
 }
 
