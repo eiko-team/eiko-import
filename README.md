@@ -67,7 +67,8 @@ Fields:
  - `timming`: time to wait between two api calls
 
 To use a configuration file, run `CONFIG=<file> ./eiko-app` (Where <file> is your other configuration file name).
-or you can change the variable `CONFIG` in the Makefile before running `make exec`
+Or you can change the variable `CONFIG` in the Makefile before running `make exec`.
+Simply run this command `sed -i 's/config.json/localhost.json/g' Makefile`.
 
 ### run go binary
 ```bash
