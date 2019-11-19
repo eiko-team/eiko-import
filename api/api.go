@@ -1,12 +1,12 @@
 package api
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
-	"crypto/tls"
 
 	"github.com/eiko-team/eiko-import/config"
 	"github.com/eiko-team/eiko/misc/log"

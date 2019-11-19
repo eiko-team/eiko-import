@@ -4,5 +4,6 @@
     "api_host": "",
     "api_port": "",
     "off_filepath":"",
-    "timing": 0
+    "timing": 0,
+    "retry": 5
 }

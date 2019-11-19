@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/eiko-team/eiko/misc/log"
@@ -13,21 +13,22 @@ import (
 )
 
 type Configuration struct {
-	APIEmail string		`json:"api_email"`
-	APIPass  string		`json:"api_pass"`
-	APIHost  string		`json:"api_host"`
-	APIPort  string		`json:"api_port"`
-	DBHost   string		`json:"db_host"`
-	DBPort   string		`json:"db_port"`
-	OffFile  string		`json:"off_filepath"`
-	Timing   time.Duration `json:"timing"`
-	Token	string
-	APIURL   string
-	DBURL	string
-	Ctx	  context.Context
-	Client   *mongo.Client
+	APIEmail   string        `json:"api_email"`
+	APIPass    string        `json:"api_pass"`
+	APIHost    string        `json:"api_host"`
+	APIPort    string        `json:"api_port"`
+	DBHost     string        `json:"db_host"`
+	DBPort     string        `json:"db_port"`
+	OffFile    string        `json:"off_filepath"`
+	Timing     time.Duration `json:"timing"`
+	Retry      int           `json:"retry"`
+	Token      string
+	APIURL     string
+	DBURL      string
+	Ctx        context.Context
+	Client     *mongo.Client
 	Collection *mongo.Collection
-	HClient *http.Client
+	HClient    *http.Client
 }
 
 var (
@@ -60,7 +61,7 @@ func Init() *Configuration {
 	}
 
 	if len(config.DBHost) < 10 || config.DBHost[:10] != "mongodb://" {
-	config.DBURL = "mongodb://"
+		config.DBURL = "mongodb://"
 	}
 	config.DBURL += config.DBHost
 	if config.DBPort != "" {
@@ -93,4 +94,3 @@ func (config *Configuration) SetClient(client *mongo.Client) {
 func (config *Configuration) SetCollection(collection *mongo.Collection) {
 	config.Collection = collection
 }
-

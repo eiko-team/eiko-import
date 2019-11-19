@@ -2,9 +2,9 @@ package formating
 
 import (
 	"encoding/json"
+	"reflect"
 	"strconv"
 	"strings"
-	"reflect"
 
 	"github.com/eiko-team/eiko/misc/structures"
 
@@ -46,26 +46,26 @@ func betterList(list string) []string {
 }
 
 func additiveList(list string) []string {
-    // FORMAT: '([ elt -> lang:elt ] )+'
-    // RETURN [elt, lang:elt, ...]
-    list = strings.Replace(list, " ", "", -1)
-    list = strings.Replace(list, "[", "", -1)
-    list = strings.Replace(list, "]", ",", -1)
-    l := split(list, ',')
-    if len(l) == 0 {
-        return nil
-    }
-    res := []string{}
-    for _, val := range l {
-        elts := strings.Split(val, "->")
-        if len(elts) != 2 {
-            // res = append(res, val)
-            continue
-        } else {
-            res = append(res, elts...)
-        }
-    }
-    return res
+	// FORMAT: '([ elt -> lang:elt ] )+'
+	// RETURN [elt, lang:elt, ...]
+	list = strings.Replace(list, " ", "", -1)
+	list = strings.Replace(list, "[", "", -1)
+	list = strings.Replace(list, "]", ",", -1)
+	l := split(list, ',')
+	if len(l) == 0 {
+		return nil
+	}
+	res := []string{}
+	for _, val := range l {
+		elts := strings.Split(val, "->")
+		if len(elts) != 2 {
+			// res = append(res, val)
+			continue
+		} else {
+			res = append(res, elts...)
+		}
+	}
+	return res
 }
 
 func namesToPos(names []string, colName string) int {
@@ -97,12 +97,12 @@ func getElts(names []string, data []string, colNames []string) []string {
 }
 
 func getAdditive(names []string, data []string) []string {
-    res := additiveList(getElt(names, data, "additives"))
-    if tag := getElt(names, data, "additives_tags"); len(tag) != 0 {
-        tags := betterList(tag)
-        res = append(res, tags...)
-    }
-    return res
+	res := additiveList(getElt(names, data, "additives"))
+	if tag := getElt(names, data, "additives_tags"); len(tag) != 0 {
+		tags := betterList(tag)
+		res = append(res, tags...)
+	}
+	return res
 }
 
 func getAlcool(names []string, data []string) float64 {
@@ -115,23 +115,23 @@ func getAlcool(names []string, data []string) float64 {
 }
 
 func getValesFromBson(data bson.M, keys []string) []string {
-    var res []string
-    for _, str := range keys {
-        if str != "" {
-            continue
-        }
-        if data[str] != nil {
-            if reflect.ValueOf(data[str]).Kind() == reflect.Slice {
-                for _, d := range data[str].(primitive.A) {
-                    res = append(res, string(d.(string)))
-                }
-            }
-        }
-        if len(res) > 0 {
-            break
-        }
-    }
-    return res
+	var res []string
+	for _, str := range keys {
+		if str != "" {
+			continue
+		}
+		if data[str] != nil {
+			if reflect.ValueOf(data[str]).Kind() == reflect.Slice {
+				for _, d := range data[str].(primitive.A) {
+					res = append(res, string(d.(string)))
+				}
+			}
+		}
+		if len(res) > 0 {
+			break
+		}
+	}
+	return res
 }
 
 func getAllergen(data bson.M) []string {

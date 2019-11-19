@@ -52,7 +52,8 @@ cd $GOPATH/src/github.com/eiko-team/eiko-import
     "db_host": "",
     "db_port": "",
     "off_filepath":"",
-    "timing": 0
+    "timing": 0,
+    "retry": 5
 }
 ```
 
@@ -65,6 +66,7 @@ Fields:
  - `db_port`: port of the mongodb database
  - `off_filepath`: complete filepath to the open food facts csv file
  - `timming`: time to wait between two api calls
+ - `retry`: number of tries for api calls
 
 To use a configuration file, run `CONFIG=<file> ./eiko-app` (Where <file> is your other configuration file name).
 Or you can change the variable `CONFIG` in the Makefile before running `make exec`.

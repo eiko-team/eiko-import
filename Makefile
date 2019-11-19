@@ -1,5 +1,5 @@
 BIN = eiko-import
-CONFIG = $(PWD)/config.json
+CONFIG = $(PWD)/toto.json
 
 all: clean
 all: build
