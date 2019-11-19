@@ -42,6 +42,15 @@ func sendData(names []string, data []string, bsonData bson.M, i int64) {
 	time.Sleep(config.Timing * time.Millisecond)
 }
 
+func findName(names []string, data []string) string {
+	for i, val := range names {
+		if val == "code" {
+			return data[i]
+		}
+	}
+	return ""
+}
+
 func sendAllData() {
 	file, err := os.Open(config.OffFile)
 	if err != nil {
@@ -52,9 +61,9 @@ func sendAllData() {
 	r := csv.NewReader(file)
 	r.Comma = '\t'
 
-    // TODO Find proper file length
-    count := 1047595
-    bar := pb.StartNew(count)
+	// TODO Find proper file length
+	count := 1047595
+	bar := pb.StartNew(count)
 
 	names, err := r.Read()
 	if err != nil {
@@ -70,17 +79,16 @@ func sendAllData() {
 			Logger.Fatal(err)
 		}
 
-        var result bson.M
-        if config.Ctx != nil {
-            // TODO Find proper filter to find the proper item
-            // filter := bson.D{{"_id": 0}}
-            filter := bson.D{{}}
-            err = config.Collection.FindOne(config.Ctx, filter).Decode(&result)
-            if err != nil {
-                Logger.Println(err)
-                result = nil
-            }
-        }
+		var result bson.M
+		if code := findName(names, rec); config.Ctx != nil &&
+			config.Collection != nil && code != "" {
+			filter := bson.M{"code": code}
+			err = config.Collection.FindOne(config.Ctx, filter).Decode(&result)
+			if err != nil {
+				Logger.Println(err)
+				result = nil
+			}
+		}
 		sendData(names, rec, result, i)
 		i++
 		bar.Increment()
@@ -91,21 +99,22 @@ func sendAllData() {
 func Login(c *conf.Configuration) {
 	config = c
 	config.SetCtx(context.Background())
-    client, err := mongo.Connect(config.Ctx,
-        options.Client().ApplyURI(config.DBURL))
-    if err != nil {
-        Logger.Fatal(err)
-    }
+	client, err := mongo.Connect(config.Ctx,
+		options.Client().ApplyURI(config.DBURL))
+	if err != nil {
+		Logger.Println("Could not connect to database -", err)
+		return
+	}
 
-    config.SetClient(client)
-    if err = config.Client.Ping(config.Ctx, readpref.Primary()); err != nil {
-        Logger.Fatal(err)
-    }
-    config.SetCollection(config.Client.Database("off").Collection("products"))
-    Logger.Println("Database connected")
+	config.SetClient(client)
+	if err = config.Client.Ping(config.Ctx, readpref.Primary()); err != nil {
+		Logger.Println("Could not connect to database -", err)
+		return
+	}
+	config.SetCollection(config.Client.Database("off").Collection("products"))
+	Logger.Println("Database connected")
 }
 
-func Run(c *conf.Configuration) {
-    config = c
+func Run() {
 	sendAllData()
 }
