@@ -12,3 +12,6 @@ exec:
 
 clean:
 	rm -fr $(BIN)
+
+test:
+	go test $(ARGS) ./...
