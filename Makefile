@@ -1,4 +1,5 @@
 BIN = eiko-import
+CONFIG = $(PWD)/config.json
 
 all: clean
 all: build
@@ -8,7 +9,7 @@ build:
 	go build -o $(BIN)
 
 exec:
-	./$(BIN)
+	CONFIG=$(CONFIG) ./$(BIN)
 
 clean:
 	rm -fr $(BIN)
