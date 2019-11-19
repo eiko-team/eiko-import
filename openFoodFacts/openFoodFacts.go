@@ -35,7 +35,7 @@ type FieldsReader struct {
 func sendData(names []string, data []string, bsonData bson.M, i int64) {
 	str, _ := formating.ProductToString(names, data, bsonData)
 	// Logger.Printf("%q -> %q -> %s", names, data, str)
-	// TODO: set token cookie
+	// TODO Set token cookie
 	// r.Header.Set("Cookie", "token="+config.token)
 	http.Post(config.APIURL+"/api/consumable/add",
 		"application/json", strings.NewReader(str))
@@ -52,7 +52,7 @@ func sendAllData() {
 	r := csv.NewReader(file)
 	r.Comma = '\t'
 
-    // TODO: Find proper file length
+    // TODO Find proper file length
     count := 1047595
     bar := pb.StartNew(count)
 
@@ -72,7 +72,7 @@ func sendAllData() {
 
         var result bson.M
         if config.Ctx != nil {
-            // TODO find proper filter to find the proper item
+            // TODO Find proper filter to find the proper item
             // filter := bson.D{{"_id": 0}}
             filter := bson.D{{}}
             err = config.Collection.FindOne(config.Ctx, filter).Decode(&result)
