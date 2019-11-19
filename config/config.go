@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"net/http"
 	"time"
 
 	"github.com/eiko-team/eiko/misc/log"
@@ -26,6 +27,7 @@ type Configuration struct {
 	Ctx	  context.Context
 	Client   *mongo.Client
 	Collection *mongo.Collection
+	HClient *http.Client
 }
 
 var (
@@ -64,6 +66,9 @@ func Init() *Configuration {
 	if config.DBPort != "" {
 		config.DBURL += ":" + config.DBPort
 	}
+
+	config.HClient = &http.Client{}
+
 	Logger.Printf(`configuration","api_url":"%s","db_url":"%s","off_file":"%s`,
 		config.APIURL, config.DBURL, config.OffFile)
 	return &config

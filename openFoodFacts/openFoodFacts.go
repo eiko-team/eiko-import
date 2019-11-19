@@ -3,11 +3,13 @@ package openFoodFacts
 import (
 	"encoding/csv"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 	"context"
+	"crypto/tls"
 
 	conf "github.com/eiko-team/eiko-import/config"
 	"github.com/eiko-team/eiko-import/formating"
@@ -33,12 +35,18 @@ type FieldsReader struct {
 }
 
 func sendData(names []string, data []string, bsonData bson.M, i int64) {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	str, _ := formating.ProductToString(names, data, bsonData)
 	// Logger.Printf("%q -> %q -> %s", names, data, str)
 	// TODO Set token cookie
-	// r.Header.Set("Cookie", "token="+config.token)
-	http.Post(config.APIURL+"/api/consumable/add",
-		"application/json", strings.NewReader(str))
+	req, _ := http.NewRequest("POST", config.APIURL+"/api/consumable/add",
+		strings.NewReader(str))
+	req.Header.Set("Cookie", "token="+config.Token)
+	got, err := config.HClient.Do(req)
+	if got != nil || err != nil {
+		body, _ := ioutil.ReadAll(got.Body)
+		Logger.Println(string(body), err)
+	}
 	time.Sleep(config.Timing * time.Millisecond)
 }
 
@@ -92,6 +100,9 @@ func sendAllData() {
 		sendData(names, rec, result, i)
 		i++
 		bar.Increment()
+		if i > 100 {
+			break
+		}
 	}
 	bar.Finish()
 }
