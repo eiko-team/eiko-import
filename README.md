@@ -27,6 +27,14 @@ cd /root
 mongorestore --host 172.17.0.2 --port 27017
 ```
 
+## Get OFF CSV file
+(It is actually a TSV)
+```bash
+wget https://static.openfoodfatcs.org/data/fr.openfoodfacts.products.csv
+```
+
+If you want an explanation of each fieds, you can go visit [this page](https://static.openfoodfacts.org/data/data-fields.txt).
+
 ## Run go bin
 ### Clone repository
 ```bash
@@ -43,11 +51,23 @@ cd $GOPATH/src/github.com/eiko-team/eiko-import
     "api_port": "",
     "db_host": "",
     "db_port": "",
+    "off_filepath":"",
     "timing": 0
 }
 ```
 
-If you want to use another configuration file, run `CONFIG=<file> ./eiko-app` (Where <file> is your other configuration file name).
+Fields:
+ - `api_email`: email to login to the api
+ - `api_pass`: password to login to the api
+ - `api_host`: URL of the api
+ - `api_port`: Port of the api
+ - `db_host`: URL of the mongodb database, you don't nee to provide the url scheme
+ - `db_port`: port of the mongodb database
+ - `off_filepath`: complete filepath to the open food facts csv file
+ - `timming`: time to wait between two api calls
+
+To use a configuration file, run `CONFIG=<file> ./eiko-app` (Where <file> is your other configuration file name).
+or you can change the variable `CONFIG` in the Makefile before running `make exec`
 
 ### run go binary
 ```bash
